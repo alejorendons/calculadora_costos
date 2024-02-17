@@ -23,6 +23,7 @@ struct Empresa {
     iva: f64,
     retencion: f64,
     reteica: f64,
+    riesgo: f64, // Nuevo campo para el riesgo
     costo_total_antes_impuestos: f64,
     costo_total: f64,
 }
@@ -36,9 +37,18 @@ fn main() {
         println!("2. Ver historial de empresas");
         println!("3. Salir");
 
+        println!("Selecciona una opcion: ");
+
         let mut opcion = String::new();
         io::stdin().read_line(&mut opcion).expect("Error al leer la línea");
-        let opcion: i32 = opcion.trim().parse().expect("Por favor, introduce un número válido.");
+        
+        let opcion: i32 = match opcion.trim().parse() {
+            Ok(num) => num,
+            Err(_) => {
+                println!("Por favor, introduce un número válido.");
+                continue; // Esto hará que el bucle continúe y pida de nuevo la opción.
+            }
+        };
 
         match opcion {
             1 => {
@@ -53,18 +63,49 @@ fn main() {
             },
             _ => println!("Opción no válida, por favor intenta de nuevo."),
         }
-
     }
+
+
+    
 }
 
 
 
 
+
 fn agregar_empresa(empresas: &mut Vec<Empresa>) -> Result<(), &'static str> {
+    println!("*
+    *
+    *
+    *
+    *
+    *
+    *
+    *
+    *
+    *
+    *
+    *
+    *
+    *
+    *
+    *
+    *
+    *
+    *
+    *");
     let nombre = leer_entrada("Introduce el nombre de la empresa:")?;
     let nit = leer_entrada("Introduce el NIT de la empresa:")?;
     let direccion = leer_entrada("Introduce la dirección de la empresa:")?;
-    let telefono = leer_entrada("Introduce el teléfono de la empresa:")?;
+    //let telefono = leer_entrada("Introduce el teléfono de la empresa:")?;
+    let telefono = loop {
+        let input = leer_entrada("Introduce el teléfono de la empresa (solo números):")?;
+        if input.chars().all(char::is_numeric) && input.len() == 10 { // Ejemplo de validación básica
+            break input;
+        } else {
+            println!("Por favor, introduce un número de teléfono válido de 10 dígitos.");
+        }
+    };
     let descripcion_software = leer_entrada("Describe el software que deseas:")?;
 
     println!("Introduce el número de personas que trabajarán en el proyecto:");
@@ -101,7 +142,8 @@ fn agregar_empresa(empresas: &mut Vec<Empresa>) -> Result<(), &'static str> {
     let iva = costo_total_antes_impuestos * 0.19;
     let retencion = costo_total_antes_impuestos * 0.10;
     let reteica = costo_total_antes_impuestos * 0.01;
-    let costo_total = costo_total_antes_impuestos + iva + retencion + reteica;
+    let riesgo = costo_total_antes_impuestos * 0.15; // 15% de riesgo
+    let costo_total = costo_total_antes_impuestos + iva + retencion + reteica + riesgo;
 
     empresas.push(Empresa {
         nombre: nombre.clone(),
@@ -114,6 +156,7 @@ fn agregar_empresa(empresas: &mut Vec<Empresa>) -> Result<(), &'static str> {
         iva,
         retencion,
         reteica,
+        riesgo,
         costo_total_antes_impuestos,
         costo_total,
     });
@@ -123,7 +166,9 @@ fn agregar_empresa(empresas: &mut Vec<Empresa>) -> Result<(), &'static str> {
     println!("IVA (19%): {:.2}", iva);
     println!("Retención en la fuente (10%): {:.2}", retencion);
     println!("ReteICA (1%): {:.2}", reteica);
-    println!("Costo Total (Incluyendo Impuestos): {:.2}", costo_total);
+    println!("Riesgo (15%): {:.2}", riesgo); // Mostrar el riesgo
+    println!("Costo Total (Incluyendo Impuestos y Riesgo): {:.2}", costo_total);
+
 
     Ok(())
 }
@@ -141,9 +186,13 @@ fn leer_entrada(prompt: &str) -> Result<String, &'static str> {
 }
 
 fn leer_entrada_numerica(prompt: &str) -> Result<f64, &'static str> {
-    leer_entrada(prompt)?
-        .parse::<f64>()
-        .map_err(|_| "Por favor, introduce un número válido.")
+    loop {
+        let entrada = leer_entrada(prompt)?;
+        match entrada.parse::<f64>() {
+            Ok(numero) => return Ok(numero),
+            Err(_) => println!("Por favor, introduce un número válido."),
+        }
+    }
 }
 
 fn ver_historial(empresas: &[Empresa]) {
